@@ -16,3 +16,6 @@ Pods/
 # Swift Package Manager
 .build/
 .swiftpm/
+
+# Git worktrees
+.worktrees/

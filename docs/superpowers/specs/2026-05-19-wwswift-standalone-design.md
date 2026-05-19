@@ -3,6 +3,7 @@
 **日期：** 2026-05-19  
 **状态：** 已评审（brainstorming 阶段用户确认）  
 **远端仓库：** https://github.com/doctor-lijy/WWSwift  
+**本地工作目录：** `/Users/lijingyi/Desktop/WW/AITest/WWSwift`（本机唯一 clone，勿在 `WW/WWSwift` 重复维护）  
 **参考工程：** weexios / `WeexExchange`（只读对照，零代码依赖）
 
 > **仓库约定：** 本仓库为设计与实现的唯一落点；weexios 仅作对照参考，不在 weexios 中提交 WWSwift 相关改动。
@@ -294,6 +295,7 @@ end
 | 网络 | Mock + Test/Stg/Prod 可切换 |
 | 目标 | 参考沉淀 + 可运行 Demo |
 | 文档与提交 | 仅本仓库（WWSwift），weexios 只读对照 |
+| 本机工作目录 | `/Users/lijingyi/Desktop/WW/AITest/WWSwift` |
 
 ---
 

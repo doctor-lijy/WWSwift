@@ -4,7 +4,8 @@ WEEX iOS 合约与退出登录能力的 **独立 Swift 复刻工程**（UIKit，
 
 - **设计说明：** [docs/superpowers/specs/2026-05-19-wwswift-standalone-design.md](docs/superpowers/specs/2026-05-19-wwswift-standalone-design.md)
 - **对照参考：** [weexios](https://github.com/doctor-lijy?tab=repositories) 本地 `WeexExchange`（只读，不提交联动改动）
-- **仓库：** https://github.com/doctor-lijy/WWSwift
+- **远端仓库：** https://github.com/doctor-lijy/WWSwift
+- **本机工作目录：** `/Users/lijingyi/Desktop/WW/AITest/WWSwift`
 
 ## 要求
 

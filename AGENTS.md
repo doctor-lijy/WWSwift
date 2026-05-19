@@ -2,6 +2,8 @@
 
 本仓库为 **独立 Swift 工程**，与 weexios **零代码依赖**。weexios 仅作只读对照。
 
+**本机路径：** `/Users/lijingyi/Desktop/WW/AITest/WWSwift`（与 [设计 spec](docs/superpowers/specs/2026-05-19-wwswift-standalone-design.md) 一致；勿在 `WW/WWSwift` 另建副本）
+
 ## 必读文档
 
 - 设计 spec：[`docs/superpowers/specs/2026-05-19-wwswift-standalone-design.md`](docs/superpowers/specs/2026-05-19-wwswift-standalone-design.md)
