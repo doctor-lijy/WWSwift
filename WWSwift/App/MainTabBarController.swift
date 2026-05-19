@@ -3,7 +3,18 @@ import UIKit
 final class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
-        let contract = UINavigationController(rootViewController: ContractPlaceholderViewController())
+
+        let environmentManager = EnvironmentManager()
+        let sessionStore = SessionStore()
+        let apiClient = APIClient(environment: environmentManager, session: sessionStore)
+        let viewModel = ContractViewModel(
+            configService: ContractConfigService(apiClient: apiClient),
+            tradingService: ContractTradingService(apiClient: apiClient),
+            environmentManager: environmentManager
+        )
+        let contract = UINavigationController(
+            rootViewController: ContractViewController(viewModel: viewModel)
+        )
         contract.tabBarItem = UITabBarItem(title: "合约", image: nil, tag: 0)
 
         #if DEBUG
@@ -13,23 +24,5 @@ final class MainTabBarController: UITabBarController {
         #else
         viewControllers = [contract]
         #endif
-    }
-}
-
-/// P2 替换为真实 ContractViewController
-final class ContractPlaceholderViewController: UIViewController {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        title = "合约"
-        let label = UILabel()
-        label.text = "合约页 — P2 落地"
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
     }
 }
