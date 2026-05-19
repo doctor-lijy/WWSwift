@@ -16,9 +16,14 @@ targets:
       - path: WWSwift
         excludes:
           - Resources/Mocks/**
+          - Vendor/**
       - path: WWSwift/Resources/Mocks
         type: folder
         buildPhase: resources
+    dependencies:
+      - framework: WWSwift/Vendor/PHNet.xcframework
+        embed: true
+        codeSign: true
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.weex.wwswift.app
       INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen

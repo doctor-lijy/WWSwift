@@ -1,26 +1,35 @@
 ---
-description: 禁止依赖 weexios 工程与模块
+description: 限定 weexios 依赖；允许 PHNet 二进制内部 SDK，禁止其他源码与配置
 alwaysApply: true
 ---
 
-# 禁止 weexios 代码依赖
+# 限定 weexios 依赖范围
 
-WWSwift 是 **独立 Git 仓库**，与 `weexios` **零编译期依赖**。
+WWSwift 是 **独立 Git 仓库**，原则上与 `weexios` **零源码依赖**。  
+`PHNet.xcframework` 视作公司内部已编译 SDK，**例外**允许以二进制方式纳入本工程。
+
+## 允许（白名单）
+
+- 拷贝 `PHNet.xcframework` 进 `WWSwift/Vendor/PHNet.xcframework`，并在 `project.yml` / `Podfile` 中以二进制 framework 依赖形式引入。
+- 通过 Pod 引入 `AFNetworking`（PHNet 运行时依赖）。
+- 在 Swift 中 `import PHNet`、调用 `SocketManager` / `DomainManager` / `WeexHttpClient` / `RuntimeAPPEnv` 等公开 API。
 
 ## 禁止
 
-- `import` / `@import` / 链接任何 weexios 模块（如 `WeexExchange`、`PHNet`、`WeexNet` 等）。
-- 将 weexios 源码、`.xcframework`、Pod 子模块加入本工程 `Podfile` / `project.pbxproj`。
-- 在本仓库提交 weexios 的 spec、实现或私有 Pod 引用。
+- `#import` / `@import` / 链接除 `PHNet` 之外的任何 weexios 模块（如 `WeexExchange`、`WeexNet` 等）。
+- 将 weexios **源码**（`.h` / `.m` / `.swift`）拷入或 `submodule` 进本仓库。
+- 将 weexios 私有 Pod（`WeexExchange`、`WeexNet`、内部 Pod 源）加入 `Podfile`。
+- 在本仓库提交 weexios 自身的 spec、私有实现或其他二进制 framework（仅 `PHNet.xcframework` 例外）。
 
 ## 允许（只读对照）
 
 - 本机只读路径（勿写入、勿 submodule）：  
   `/Users/lijingyi/Desktop/WW/weexios/WeexExchange`
-- 对照文件类型：`.h` / `.m` / `.swift` 行为与 API 路径；结论写入 WWSwift 的 Swift 与 `docs/`。
+- 对照文件类型：`.h` / `.m` / `.swift` 行为与 API 路径；结论与签名/协议常量用 Swift 在 WWSwift 内重写。
 
 ## 提交前自检
 
-- [ ] `git grep -i weexexchange WWSwift/` 无命中（文档说明除外）
-- [ ] 无 `PHNet`、`WeexNet` 字符串于工程配置
+- [ ] `git grep -i weexexchange WWSwift/ --exclude-dir=docs` 无源码命中（仅文档说明可保留）
+- [ ] 无 `WeexNet` 字符串于工程配置或源码
+- [ ] `Vendor/` 下仅有 `PHNet.xcframework`，无其他 weexios 私有 framework
 - [ ] 所有改动仅提交 **doctor-lijy/WWSwift** 仓库

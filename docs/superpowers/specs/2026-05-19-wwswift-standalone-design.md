@@ -1,12 +1,15 @@
 # WWSwift 独立工程设计说明
 
-**日期：** 2026-05-19  
+**日期：** 2026-05-19（2026-05-19 修订：纳入 PHNet 二进制依赖）  
 **状态：** 已评审（brainstorming 阶段用户确认）  
 **远端仓库：** https://github.com/doctor-lijy/WWSwift  
 **本地工作目录：** `/Users/lijingyi/Desktop/WW/AITest/WWSwift`（本机唯一 clone，勿在 `WW/WWSwift` 重复维护）  
-**参考工程：** weexios / `WeexExchange`（只读对照，零代码依赖）
+**参考工程：** weexios / `WeexExchange`（只读对照，原则零源码依赖）  
+**例外依赖：** `PHNet.xcframework` 视作公司内部已编译 SDK，以二进制方式纳入 `WWSwift/Vendor/`（仅此一例）
 
 > **仓库约定：** 本仓库为设计与实现的唯一落点；weexios 仅作对照参考，不在 weexios 中提交 WWSwift 相关改动。
+>
+> **PHNet 例外说明（2026-05-19 修订）：** 原 spec 与 `AGENTS.md` 中「不拷贝 PHNet/WeexNet」的条款已调整为允许 `PHNet.xcframework`。背景：本工程定位为对照学习与 Swift 重写、**不上线**；自行用 Swift 复刻 PHNet（HTTP 签名、Socket 协议帧、域名探测）成本约 3-4 周且需对 PHNet 私有协议做协议级逆向，与「学习 weexios 业务实现」的核心目标偏离。把 PHNet 当作公司内部 binary SDK，能立即获得**真实数据**（HTTP + Socket 全部订阅码），将精力聚焦在业务层的 Swift 重写。详见 §10。
 
 ---
 
@@ -41,7 +44,8 @@
 | 跟单 / CopyTrade | `WContractCopyTradeController`、`UI/Main/Trade/CopyTrade/**`、`WFollowOrderViewController*` 等 |
 | 完整登录域 | 注册、登录、忘记密码、三方登录 UI 均不在范围；仅退出 + Debug 注入 Token |
 | SwiftUI | 全项目禁止 |
-| 拷贝 PHNet/WeexNet | 网络层 Swift 独立实现，行为对齐文档化 |
+| 拷贝 weexios 源码 | `.h`/`.m`/`.swift` 一律不拷；`WeexNet.m` 那套初始化在 Swift 重写 |
+| 其他 weexios 私有 framework | 仅 `PHNet.xcframework` 例外允许，其余（若存在）一律禁止 |
 
 ---
 
@@ -241,7 +245,9 @@ flowchart TB
 
 ---
 
-## 9. 依赖（Podfile 初版）
+## 9. 依赖
+
+### 9.1 Podfile
 
 ```ruby
 platform :ios, '14.0'
@@ -249,14 +255,51 @@ use_frameworks!
 
 target 'WWSwift' do
   pod 'SnapKit'
-  pod 'SDWebImage'      # 若需图片加载，与 weexios 一致
-  # 按需：MJRefresh、SwiftTheme 等，新增需记录理由
+  pod 'SDWebImage'
+  pod 'AFNetworking', '~> 4.0'   # PHNet.xcframework 运行时依赖
 end
 ```
 
+### 9.2 Vendor 二进制依赖
+
+- `WWSwift/Vendor/PHNet.xcframework`（公司内部 SDK，二进制；从 weexios 仓库拷贝同步）
+- 在 `project.yml` 中以 `dependencies: [{ framework: Vendor/PHNet.xcframework, embed: true }]` 引入
+
 ---
 
-## 10. 错误处理与测试
+## 10. PHNet 接入方案
+
+> 详尽接入路径见 `docs/reference/phnet-integration.md`（P2 起补齐）。本节记录边界与初始化责任。
+
+### 10.1 公开依赖面
+
+只调用 PHNet 暴露的 OC API（umbrella header `PHNet/PHNet.h`），主要类：
+
+| 类型 | 用途 |
+|------|------|
+| `RuntimeAPPEnv` | 启动期注入：socketHeader / configHeader / CDN / 域名 / 线路 / 登录判定 / 埋点回调 |
+| `DomainManager` | 环境切换（`AppENV_TEST/STG/PROD/GRAY/IP`）、域名探测、`getRealUrl_New(_:)` 等 |
+| `WeexHttpClient` | HTTP 请求（GET/POST/JSON/Form/Multipart） |
+| `SocketManager` | Socket 启动、订阅/退订（合约/现货/资产/账户） |
+| `SecurityManager` | 反爬/反风控（未来按需） |
+
+### 10.2 Swift 侧补齐（独立实现）
+
+PHNet 自身不知道「业务」侧字段；下列由 WWSwift 自行用 Swift 提供：
+
+- `DeviceInfoProvider`：`vs`（随机串）、`sidecar`、`appVersion`、`packageName`、`deviceID`、MD5 工具
+- `PHNetBootstrap`：启动期一次性调 `RuntimeAPPEnv.setSocketHeader/setConfigHeader/...`
+- 业务签名 `originSIG = md5("weex" + ts + vs + clientType + verName + packageName + deviceID)`
+
+### 10.3 集成边界
+
+- 不引入 weexios 任何 `.m` 文件（含 `WeexNet.m` / `DeviceManager.m` 等），算法**重写**于 Swift
+- 仅 `PHNet.xcframework` 一份二进制；其他 weexios framework 一律禁止
+- `EnvironmentManager`（P0 既有）转为 `DomainManager` 薄封装；保留对外 API 不变
+
+---
+
+## 11. 错误处理与测试
 
 **错误处理：**
 
@@ -272,7 +315,7 @@ end
 
 ---
 
-## 11. 风险与缓解
+## 12. 风险与缓解
 
 | 风险 | 缓解 |
 |------|------|
@@ -283,7 +326,7 @@ end
 
 ---
 
-## 12. 已确认决策记录
+## 13. 已确认决策记录
 
 | 决策 | 选择 |
 |------|------|
@@ -299,8 +342,8 @@ end
 
 ---
 
-## 13. 下一步
+## 14. 下一步
 
 1. ~~用户审阅本 spec~~（已确认）
-2. 生成 implementation plan（writing-plans）
-3. P0：替换现有 Pod 脚手架为 App 工程，落地 Agents/Rules/Skills
+2. ~~生成 implementation plan（writing-plans）~~（已完成 P0-P5）
+3. **2026-05-19 PHNet 接入子计划**：详见 `docs/superpowers/plans/2026-05-19-wwswift-phnet-integration.md`（待生成）

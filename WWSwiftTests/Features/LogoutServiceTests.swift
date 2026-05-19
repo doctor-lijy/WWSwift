@@ -15,6 +15,8 @@ final class LogoutServiceTests: XCTestCase {
         environment.setCurrent(.mock)
         let session = SessionStore(storage: storage)
         session.accessToken = "test-token"
+        session.userToken = "test-user-token"
+        session.rToken = "test-r-token"
         session.userId = "user-1"
         let apiClient = APIClient(
             environment: environment,

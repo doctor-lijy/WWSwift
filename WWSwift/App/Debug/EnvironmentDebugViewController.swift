@@ -78,8 +78,9 @@ final class EnvironmentDebugViewController: UIViewController {
     }
 
     private func refreshLabels() {
+        let sampleURL = environmentManager.url(for: "api/v1/public/meta/getMetaDataNew")
         envLabel.text = "当前环境: \(environmentManager.current.displayName)"
-        urlLabel.text = "合约 API: \(environmentManager.contractAPIBaseURL.absoluteString)"
+        urlLabel.text = "合约 API: \(sampleURL.absoluteString)"
         tokenField.text = sessionStore.accessToken
         userIdField.text = sessionStore.userId
     }

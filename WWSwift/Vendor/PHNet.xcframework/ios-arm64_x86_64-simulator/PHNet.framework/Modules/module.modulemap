@@ -1,0 +1,11 @@
+framework module PHNet {
+  umbrella header "PHNet.h"
+  export *
+
+  module * { export * }
+}
+
+module PHNet.Swift {
+  header "PHNet-Swift.h"
+  requires objc
+}

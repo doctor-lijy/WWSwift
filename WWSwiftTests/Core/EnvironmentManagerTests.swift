@@ -17,9 +17,17 @@ final class EnvironmentManagerTests: XCTestCase {
 
     func test_switchEnvironment_persists() {
         let manager = EnvironmentManager(storage: UserDefaultsStorage(defaults: defaults))
-        manager.setCurrent(.test)
+        // 不下发 PHNet，避免测试环境下触碰未配置的 DomainManager
+        manager.setCurrent(.test, syncToPHNet: false)
         let reloaded = EnvironmentManager(storage: UserDefaultsStorage(defaults: defaults))
         XCTAssertEqual(reloaded.current, .test)
-        XCTAssertTrue(reloaded.contractAPIBaseURL.absoluteString.hasPrefix("https://"))
+    }
+
+    func test_mockUrl_isLocalPlaceholder() {
+        let manager = EnvironmentManager(storage: UserDefaultsStorage(defaults: defaults))
+        XCTAssertEqual(
+            manager.url(for: "api/v1/public/meta/getMetaDataNew").absoluteString,
+            "https://mock.wwswift.local/api/v1/public/meta/getMetaDataNew"
+        )
     }
 }

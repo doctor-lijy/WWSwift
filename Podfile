@@ -4,6 +4,8 @@ use_frameworks!
 target 'WWSwift' do
   pod 'SnapKit', '~> 5.7'
   pod 'SDWebImage', '~> 5.19'
+  # PHNet.xcframework 运行时依赖（公司内部 SDK，置于 Vendor/）
+  pod 'AFNetworking', '~> 4.0'
 end
 
 target 'WWSwiftTests' do
