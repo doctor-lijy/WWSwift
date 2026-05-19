@@ -14,6 +14,11 @@ targets:
     platform: iOS
     sources:
       - path: WWSwift
+        excludes:
+          - Resources/Mocks/**
+      - path: WWSwift/Resources/Mocks
+        type: folder
+        buildPhase: resources
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.weex.wwswift.app
       INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
@@ -33,3 +38,5 @@ targets:
       - target: WWSwift
     settings:
       GENERATE_INFOPLIST_FILE: YES
+      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/WWSwift.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/WWSwift"
+      BUNDLE_LOADER: "$(TEST_HOST)"
