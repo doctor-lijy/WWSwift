@@ -18,4 +18,14 @@ enum SocketBootstrap {
     static func onAppForeground() {
         SocketManager.getInstance().onAppForeground()
     }
+
+    /// Debug 注入 token 或切换环境后调用，使 Socket 使用最新 `RuntimeAPPEnv.socketHeader` 重连。
+    static func reconnect() {
+        guard didStart else {
+            start()
+            return
+        }
+        SocketManager.getInstance().disConnect()
+        SocketManager.getInstance().reConnect()
+    }
 }

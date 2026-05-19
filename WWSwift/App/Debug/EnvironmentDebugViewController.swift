@@ -65,6 +65,7 @@ final class EnvironmentDebugViewController: UIViewController {
             self?.sessionStore.rToken = self?.rTokenField.text
             self?.sessionStore.userId = self?.userIdField.text
             self?.refreshLabels()
+            SocketBootstrap.reconnect()
         }, for: .touchUpInside)
 
         let logout = UIButton(type: .system)
