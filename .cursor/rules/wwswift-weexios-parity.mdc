@@ -1,0 +1,31 @@
+---
+description: weexios 功能对齐与跟单排除
+globs: WWSwift/**/*.swift
+alwaysApply: false
+---
+
+# weexios 对齐与跟单排除
+
+WWSwift 以 weexios **只读对照**实现合约等能力；行为对齐见 `docs/reference/weexios-mapping.md`（P5 维护）。
+
+## 禁止参照 / 移植的实现
+
+以下路径与类 **不得** 作为迁移来源或功能范围：
+
+| 类型 | weexios 路径 / 符号 |
+|------|---------------------|
+| 跟单目录 | `WeexExchange/WeexExchange/UI/Main/Trade/CopyTrade/**` |
+| 跟单控制器 | `WContractCopyTradeController` |
+| 跟单相关 VC | `WFollowOrderViewController*`（含变体） |
+
+## 允许对照的范围（示例）
+
+- 合约主交易：`UI/Main/Trade/Contract/**`（不含 CopyTrade）
+- 退出登录：`Manager/Login/WLoginManager.m`、`Login/LoginHandler.m`、`Manager/User/UserManger.m`
+- API 常量：`Common/Const/ApiConst.h` → 同步到 `docs/api/endpoints.md`
+
+## 对齐检查（PR 自检）
+
+- [ ] 未新增跟单入口、跟单 API、跟单 UI
+- [ ] 新 endpoint 已写入 `docs/api/endpoints.md` 并标注 Phase
+- [ ] 已知与 weexios 差异已记入 mapping 文档
