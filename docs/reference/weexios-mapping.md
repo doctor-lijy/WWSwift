@@ -41,7 +41,7 @@
 
 | weexios (Contract/Controller) | WWSwift | 状态 | 备注 |
 |-------------------------------|---------|------|------|
-| `WContractController` | `ContractViewController` + `ContractViewModel` | PARTIAL | 主容器；无 K 线/盘口完整集成 |
+| `WContractController` | `ContractViewController` + `ContractViewModel` | PARTIAL | M2：左下单+右盘口+底栏列表；无 K 线 |
 | `WContractBaseController` | — | PARTIAL | 逻辑合并进 `ContractViewController` |
 | `WContractPositionController` | `ContractViewModel`（持仓 segment） | PARTIAL | 持仓为 Mock 数据 |
 | `WContractEntrustCurrentController` | `ContractViewModel`（当前委托 segment） | PARTIAL | Mock/Test 拉 `getActiveOrderPage` |
@@ -59,9 +59,10 @@
 
 | weexios (View/PlaceOrder + AlertView) | WWSwift | 状态 | 备注 |
 |---------------------------------------|---------|------|------|
-| `WContractPlaceOrderView` | `PlaceOrderPanelView` | PARTIAL | 限价/市价、买卖、杠杆、保证金简化 |
-| `WContractPlaceOrderTextFieldBoxView` | `PlaceOrderPanelView` | PARTIAL | 未拆分 TP/SL、计划委托、GTD |
-| `WContractPlaceOrderBtnBoxView` | `PlaceOrderPanelView` | PARTIAL | 单「下单」按钮 |
+| `WContractPlaceOrderView` | `Views/PlaceOrder/PlaceOrderPanelView` | PARTIAL | M2 子 View 拆分；双按钮开多/开空 |
+| `WContractPlaceOrderTextFieldBoxView` | `PriceSizeInputView` 等 | PARTIAL | TP/SL 仅 UI 开关 |
+| `WContractPlaceOrderBtnBoxView` | `PlaceOrderButtonsView` | PARTIAL | 绿/红双按钮 |
+| `WContractOrderBookView` | `ContractOrderBookView` | PARTIAL | M2 Mock 5+5；M3 Socket |
 | `WPlaceOrderConfirmView` / `PlaceOrderConfirmView` | `OrderConfirmAlertController` | PARTIAL | `UIAlertController` 确认 |
 | `WContractPlaceOrderTpSlBoxView` | — | PLACEHOLDER | 开仓 TP/SL 未实现 |
 | `WContractPlaceOrderPlanGuaranteedSlPriceBoxView` | — | OUT_OF_SCOPE | 计划委托保价 |

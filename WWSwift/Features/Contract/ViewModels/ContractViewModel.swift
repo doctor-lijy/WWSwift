@@ -23,6 +23,16 @@ final class ContractViewModel {
     private(set) var errorMessage: String?
     private(set) var currentTick: ContractMarketTick?
     private(set) var socketConnected: Bool = false
+    private(set) var tradeSettings = ContractTradeSettings()
+    private(set) var orderBook: ContractOrderBookSnapshot = .mock()
+    private(set) var fundingRateText: String = "0.0100%"
+    private(set) var fundingCountdownText: String = "07:59:59"
+    private(set) var availableBalanceText: String = "1,234.56 USDT"
+    private(set) var maxOpenLongText: String = "0.500 BTC"
+    private(set) var maxOpenShortText: String = "0.500 BTC"
+    private(set) var costPreviewText: String = "48.62 USDT"
+    private(set) var sizeInputText: String = ""
+    private(set) var onlyCurrentSymbol: Bool = false
 
     var onUpdate: (() -> Void)?
     var onTickUpdate: (() -> Void)?
@@ -111,8 +121,55 @@ final class ContractViewModel {
 
     func selectSymbol(_ symbol: ContractSymbol) async {
         selectedSymbol = symbol
+        orderBook = .mock(lastPrice: currentTick?.lastPrice ?? "97234.5")
         refreshCurrentTickFromCache()
         await reloadList()
+    }
+
+    func setOpenCloseMode(_ mode: OpenCloseMode) {
+        tradeSettings.openCloseMode = mode
+        notify()
+    }
+
+    func setLeverage(_ value: Int) {
+        tradeSettings.leverage = min(125, max(1, value))
+        notify()
+    }
+
+    func setMarginMode(_ mode: ContractMarginMode) {
+        tradeSettings.marginMode = mode
+        notify()
+    }
+
+    func setSizeInput(_ text: String) {
+        sizeInputText = text
+        notify()
+    }
+
+    func updateSizePercent(_ percent: Float) {
+        let clamped = min(100, max(0, percent))
+        let base = 1.0
+        sizeInputText = String(format: "%.4f", base * Double(clamped) / 100.0)
+        notify()
+    }
+
+    func setOnlyCurrentSymbol(_ enabled: Bool) async {
+        onlyCurrentSymbol = enabled
+        await reloadList()
+    }
+
+    var bottomRowCount: Int {
+        switch segment {
+        case .positions: return positions.count
+        case .activeOrders: return activeOrders.count
+        }
+    }
+
+    var isBottomListEmpty: Bool {
+        switch segment {
+        case .positions: return positions.isEmpty
+        case .activeOrders: return activeOrders.isEmpty
+        }
     }
 
     /// 选中币对变化或冷启动时，从 socket 缓存直接拉一次最新行情。

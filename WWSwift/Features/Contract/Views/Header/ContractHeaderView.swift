@@ -5,6 +5,7 @@ final class ContractHeaderView: UIView {
     var onSwitchSymbolTapped: (() -> Void)?
 
     private let symbolLabel = UILabel()
+    private let perpetualBadge = UILabel()
     private let switchButton = UIButton(type: .system)
     private let priceLabel = UILabel()
     private let changeLabel = UILabel()
@@ -24,7 +25,7 @@ final class ContractHeaderView: UIView {
     }
 
     func updateTicker(lastPrice: String?, priceChangePercent: String?) {
-        priceLabel.text = lastPrice.map { "$\($0)" } ?? "—"
+        priceLabel.text = lastPrice ?? "—"
 
         guard let raw = priceChangePercent, let value = Double(raw) else {
             changeLabel.text = "—"
@@ -34,9 +35,7 @@ final class ContractHeaderView: UIView {
         let pct = value * 100
         let sign = pct >= 0 ? "+" : ""
         changeLabel.text = String(format: "%@%.2f%%", sign, pct)
-        changeLabel.textColor = pct >= 0
-            ? UIColor.systemGreen
-            : UIColor.systemRed
+        changeLabel.textColor = pct >= 0 ? .systemGreen : .systemRed
     }
 
     func updateSocketStatus(_ connected: Bool) {
@@ -44,12 +43,18 @@ final class ContractHeaderView: UIView {
     }
 
     private func setup() {
-        symbolLabel.font = .boldSystemFont(ofSize: 20)
-        priceLabel.font = .systemFont(ofSize: 24, weight: .semibold)
-        priceLabel.textColor = .label
+        symbolLabel.font = .boldSystemFont(ofSize: 18)
+        perpetualBadge.text = "永续"
+        perpetualBadge.font = .systemFont(ofSize: 11, weight: .medium)
+        perpetualBadge.textColor = .secondaryLabel
+        perpetualBadge.backgroundColor = .secondarySystemFill
+        perpetualBadge.layer.cornerRadius = 4
+        perpetualBadge.clipsToBounds = true
+        perpetualBadge.textAlignment = .center
+
+        priceLabel.font = .monospacedDigitSystemFont(ofSize: 22, weight: .semibold)
         changeLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        changeLabel.textColor = .secondaryLabel
-        switchButton.setTitle("切换币对", for: .normal)
+        switchButton.setTitle("切换", for: .normal)
         switchButton.addAction(UIAction { [weak self] _ in
             self?.onSwitchSymbolTapped?()
         }, for: .touchUpInside)
@@ -58,19 +63,25 @@ final class ContractHeaderView: UIView {
         socketDotView.backgroundColor = .systemGray3
 
         addSubview(symbolLabel)
+        addSubview(perpetualBadge)
         addSubview(socketDotView)
         addSubview(switchButton)
         addSubview(priceLabel)
         addSubview(changeLabel)
 
         symbolLabel.snp.makeConstraints { make in
-            make.leading.equalToSuperview().inset(16)
-            make.top.equalToSuperview().inset(10)
+            make.leading.top.equalToSuperview().inset(UIEdgeInsets(top: 8, left: 16, bottom: 0, right: 0))
+        }
+        perpetualBadge.snp.makeConstraints { make in
+            make.leading.equalTo(symbolLabel.snp.trailing).offset(6)
+            make.centerY.equalTo(symbolLabel)
+            make.width.greaterThanOrEqualTo(36)
+            make.height.equalTo(20)
         }
         socketDotView.snp.makeConstraints { make in
-            make.leading.equalTo(symbolLabel.snp.trailing).offset(8)
+            make.leading.equalTo(perpetualBadge.snp.trailing).offset(8)
             make.centerY.equalTo(symbolLabel)
-            make.size.equalTo(CGSize(width: 8, height: 8))
+            make.size.equalTo(8)
         }
         switchButton.snp.makeConstraints { make in
             make.trailing.equalToSuperview().inset(16)
@@ -79,14 +90,11 @@ final class ContractHeaderView: UIView {
         priceLabel.snp.makeConstraints { make in
             make.leading.equalToSuperview().inset(16)
             make.top.equalTo(symbolLabel.snp.bottom).offset(6)
-            make.bottom.equalToSuperview().inset(10)
+            make.bottom.equalToSuperview().inset(8)
         }
         changeLabel.snp.makeConstraints { make in
-            make.leading.equalTo(priceLabel.snp.trailing).offset(10)
+            make.leading.equalTo(priceLabel.snp.trailing).offset(8)
             make.centerY.equalTo(priceLabel)
-        }
-        snp.makeConstraints { make in
-            make.height.equalTo(72)
         }
     }
 }
