@@ -45,4 +45,4 @@ Base URL 由 `EnvironmentManager.contractAPIBaseURL` 提供，完整 URL = base 
 
 1. 新增或变更 path 时 **同时** 更新本表与 `.codex/skills/wwswift-env-and-api/SKILL.md` 中的列举（若属核心路径）。
 2. Mock 响应文件命名建议：path 中 `/` 换为 `_`，如 `v1_user_login_logout.json`。
-3. 禁止从 weexios 拷贝 `PHNet`；请求经 `APIClient` + `RequestSigning`（待实现）发出。
+3. 禁止从 weexios 拷贝 PHNet **源码**；`Vendor/PHNet.xcframework` 为唯一允许的二进制 SDK。Test/STG/Prod 请求经 `APIClient` → PHNet `WeexHttpClient`；Mock 走 `MockProvider`。签名见 [`signing.md`](signing.md)。
