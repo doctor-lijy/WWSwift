@@ -36,6 +36,7 @@ final class ContractViewController: UIViewController {
         errorLabel.isHidden = true
 
         tableView.dataSource = self
+        tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
 
         headerView.onSwitchSymbolTapped = { [weak self] in
@@ -107,7 +108,18 @@ extension ContractViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.text = viewModel.tableRows[indexPath.row]
-        cell.selectionStyle = .none
+        let isPlaceholder = viewModel.tableRows[indexPath.row].hasPrefix("暂无") || viewModel.tableRows[indexPath.row].hasPrefix("加载失败")
+        cell.selectionStyle = isPlaceholder ? .none : .default
+        cell.accessoryType = isPlaceholder ? .none : .disclosureIndicator
         return cell
+    }
+}
+
+extension ContractViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let row = viewModel.tableRows[indexPath.row]
+        guard !row.hasPrefix("暂无"), !row.hasPrefix("加载失败") else { return }
+        coordinator.handleRowSelection(at: indexPath.row, from: self)
     }
 }

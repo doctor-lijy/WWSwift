@@ -11,6 +11,7 @@ final class MainTabBarController: UITabBarController {
             configService: ContractConfigService(apiClient: apiClient),
             tradingService: ContractTradingService(apiClient: apiClient),
             orderService: ContractOrderService(apiClient: apiClient),
+            positionService: ContractPositionService(apiClient: apiClient),
             environmentManager: environmentManager
         )
         let contract = UINavigationController(
