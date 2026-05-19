@@ -1,0 +1,32 @@
+---
+description: WWSwift Swift/UIKit 编码约定
+globs: WWSwift/**/*.swift
+alwaysApply: false
+---
+
+# WWSwift Swift / UIKit 约定
+
+本仓库为独立 iOS App，**禁止 SwiftUI**（含 `import SwiftUI`、`@State`、`View` 等）。
+
+## UI 与布局
+
+- 使用 **UIKit** + **SnapKit** 做 Auto Layout；业务页禁止 Storyboard/XIB 布局。
+- 触控目标 ≥ 44pt；尊重 Safe Area 与 Dynamic Type（在现有设计 token 内缩放）。
+- 图片加载优先 **SDWebImage**（与 Podfile 一致），勿引入 weexios 封装类。
+
+## 代码风格
+
+- **4 空格**缩进；类型默认 `final`；`private` 优先于 `fileprivate`。
+- 新文件按分层放置：`WWSwift/App/`、`Core/`、`Features/<Feature>/`。
+- 网络访问经 `APIClient` + `EnvironmentManager`，勿在 VC 内硬编码 base URL。
+
+## 禁止项
+
+- SwiftUI、Combine 驱动整页 UI（局部 Combine 需 PR 说明）。
+- 从 weexios 拷贝 `PHNet` / `WeexNet` / OC 桥接网络层。
+
+## 验收（改 UI 时自检）
+
+- [ ] 仅 UIKit + SnapKit
+- [ ] 无 SwiftUI import
+- [ ] 布局约束完整、无 magic number 堆在 VC 顶部

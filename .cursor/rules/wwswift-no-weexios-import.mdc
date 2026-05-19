@@ -1,0 +1,26 @@
+---
+description: 禁止依赖 weexios 工程与模块
+alwaysApply: true
+---
+
+# 禁止 weexios 代码依赖
+
+WWSwift 是 **独立 Git 仓库**，与 `weexios` **零编译期依赖**。
+
+## 禁止
+
+- `import` / `@import` / 链接任何 weexios 模块（如 `WeexExchange`、`PHNet`、`WeexNet` 等）。
+- 将 weexios 源码、`.xcframework`、Pod 子模块加入本工程 `Podfile` / `project.pbxproj`。
+- 在本仓库提交 weexios 的 spec、实现或私有 Pod 引用。
+
+## 允许（只读对照）
+
+- 本机只读路径（勿写入、勿 submodule）：  
+  `/Users/lijingyi/Desktop/WW/weexios/WeexExchange`
+- 对照文件类型：`.h` / `.m` / `.swift` 行为与 API 路径；结论写入 WWSwift 的 Swift 与 `docs/`。
+
+## 提交前自检
+
+- [ ] `git grep -i weexexchange WWSwift/` 无命中（文档说明除外）
+- [ ] 无 `PHNet`、`WeexNet` 字符串于工程配置
+- [ ] 所有改动仅提交 **doctor-lijy/WWSwift** 仓库

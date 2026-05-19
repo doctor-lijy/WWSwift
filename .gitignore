@@ -19,3 +19,10 @@ Pods/
 
 # Git worktrees
 .worktrees/
+
+# XcodeGen
+*.xcodeproj
+!project.yml
+
+# Keep workspace from CocoaPods
+!WWSwift.xcworkspace
