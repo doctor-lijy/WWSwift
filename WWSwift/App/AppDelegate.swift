@@ -13,10 +13,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         PHNetBootstrap.configure(session: session, environment: environment)
 
+        ContractMarketSocketService.shared.registerReceivers()
+        SocketBootstrap.start()
+
         let window = UIWindow(frame: UIScreen.main.bounds)
         window.rootViewController = MainTabBarController()
         window.makeKeyAndVisible()
         self.window = window
         return true
+    }
+
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        SocketBootstrap.onAppForeground()
     }
 }

@@ -83,6 +83,9 @@ final class ContractViewController: UIViewController {
         viewModel.onUpdate = { [weak self] in
             self?.render()
         }
+        viewModel.onTickUpdate = { [weak self] in
+            self?.renderTicker()
+        }
     }
 
     private func render() {
@@ -96,7 +99,16 @@ final class ContractViewController: UIViewController {
         } else {
             errorLabel.isHidden = true
         }
+        renderTicker()
         tableView.reloadData()
+    }
+
+    private func renderTicker() {
+        headerView.updateTicker(
+            lastPrice: viewModel.currentTick?.lastPrice,
+            priceChangePercent: viewModel.currentTick?.priceChangePercent
+        )
+        headerView.updateSocketStatus(viewModel.socketConnected)
     }
 }
 

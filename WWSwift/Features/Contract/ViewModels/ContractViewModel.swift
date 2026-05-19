@@ -21,27 +21,50 @@ final class ContractViewModel {
     private(set) var activeOrders: [ContractOrder] = []
     private(set) var tableRows: [String] = []
     private(set) var errorMessage: String?
+    private(set) var currentTick: ContractMarketTick?
+    private(set) var socketConnected: Bool = false
 
     var onUpdate: (() -> Void)?
+    var onTickUpdate: (() -> Void)?
 
     private let configService: ContractConfigService
     private let tradingService: ContractTradingService
     private let orderService: ContractOrderService
     private let positionService: ContractPositionService
     private let environmentManager: EnvironmentManager
+    private let marketSocket: ContractMarketSocketService
 
     init(
         configService: ContractConfigService,
         tradingService: ContractTradingService,
         orderService: ContractOrderService,
         positionService: ContractPositionService,
-        environmentManager: EnvironmentManager
+        environmentManager: EnvironmentManager,
+        marketSocket: ContractMarketSocketService = .shared
     ) {
         self.configService = configService
         self.tradingService = tradingService
         self.orderService = orderService
         self.positionService = positionService
         self.environmentManager = environmentManager
+        self.marketSocket = marketSocket
+
+        bindSocket()
+    }
+
+    private func bindSocket() {
+        socketConnected = false
+        marketSocket.onConnectionStateChanged = { [weak self] connected in
+            self?.socketConnected = connected
+            self?.onTickUpdate?()
+        }
+        marketSocket.onTickerUpdate = { [weak self] _ in
+            guard let self = self, let symbol = self.selectedSymbol else { return }
+            if let tick = self.marketSocket.ticker(forContractId: symbol.contractId) {
+                self.currentTick = tick
+                self.onTickUpdate?()
+            }
+        }
     }
 
     func submitOrder(_ request: PlaceOrderRequest) async -> Result<String, APIError> {
@@ -60,6 +83,7 @@ final class ContractViewModel {
         case .success(let list):
             symbols = list
             selectedSymbol = list.first
+            refreshCurrentTickFromCache()
             await reloadList()
         case .failure(let error):
             errorMessage = error.message
@@ -70,7 +94,18 @@ final class ContractViewModel {
 
     func selectSymbol(_ symbol: ContractSymbol) async {
         selectedSymbol = symbol
+        refreshCurrentTickFromCache()
         await reloadList()
+    }
+
+    /// 选中币对变化或冷启动时，从 socket 缓存直接拉一次最新行情。
+    private func refreshCurrentTickFromCache() {
+        guard let symbol = selectedSymbol else {
+            currentTick = nil
+            return
+        }
+        currentTick = marketSocket.ticker(forContractId: symbol.contractId)
+        onTickUpdate?()
     }
 
     func setSegment(_ segment: ContractListSegment) async {
