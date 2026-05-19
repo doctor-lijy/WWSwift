@@ -10,6 +10,7 @@ final class MainTabBarController: UITabBarController {
         let viewModel = ContractViewModel(
             configService: ContractConfigService(apiClient: apiClient),
             tradingService: ContractTradingService(apiClient: apiClient),
+            orderService: ContractOrderService(apiClient: apiClient),
             environmentManager: environmentManager
         )
         let contract = UINavigationController(

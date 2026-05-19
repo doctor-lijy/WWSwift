@@ -7,6 +7,7 @@ final class ContractViewController: UIViewController {
 
     private let headerView = ContractHeaderView()
     private let segmentView = ContractSegmentView()
+    private let placeOrderPanel = PlaceOrderPanelView()
     private let tableView = UITableView(frame: .zero, style: .plain)
     private let errorLabel = UILabel()
 
@@ -44,9 +45,14 @@ final class ContractViewController: UIViewController {
         segmentView.onSegmentChanged = { [weak self] segment in
             Task { await self?.viewModel.setSegment(segment) }
         }
+        placeOrderPanel.onPlaceOrder = { [weak self] request in
+            guard let self else { return }
+            self.coordinator.handlePlaceOrder(from: self, request: request)
+        }
 
         view.addSubview(headerView)
         view.addSubview(segmentView)
+        view.addSubview(placeOrderPanel)
         view.addSubview(errorLabel)
         view.addSubview(tableView)
 
@@ -58,8 +64,12 @@ final class ContractViewController: UIViewController {
             make.top.equalTo(headerView.snp.bottom)
             make.leading.trailing.equalToSuperview()
         }
+        placeOrderPanel.snp.makeConstraints { make in
+            make.top.equalTo(segmentView.snp.bottom)
+            make.leading.trailing.equalToSuperview()
+        }
         errorLabel.snp.makeConstraints { make in
-            make.top.equalTo(segmentView.snp.bottom).offset(4)
+            make.top.equalTo(placeOrderPanel.snp.bottom).offset(4)
             make.leading.trailing.equalToSuperview().inset(16)
         }
         tableView.snp.makeConstraints { make in
@@ -75,7 +85,9 @@ final class ContractViewController: UIViewController {
     }
 
     private func render() {
+        let contractId = viewModel.selectedSymbol?.contractId ?? ""
         headerView.configure(symbolName: viewModel.selectedSymbol?.symbolName ?? "—")
+        placeOrderPanel.configure(contractId: contractId)
         segmentView.setSelected(viewModel.segment)
         if let message = viewModel.errorMessage, !message.isEmpty {
             errorLabel.text = message

@@ -24,16 +24,28 @@ final class ContractViewModel {
 
     private let configService: ContractConfigService
     private let tradingService: ContractTradingService
+    private let orderService: ContractOrderService
     private let environmentManager: EnvironmentManager
 
     init(
         configService: ContractConfigService,
         tradingService: ContractTradingService,
+        orderService: ContractOrderService,
         environmentManager: EnvironmentManager
     ) {
         self.configService = configService
         self.tradingService = tradingService
+        self.orderService = orderService
         self.environmentManager = environmentManager
+    }
+
+    func submitOrder(_ request: PlaceOrderRequest) async -> Result<String, APIError> {
+        let result = await orderService.placeOrder(request)
+        if case .success = result {
+            segment = .activeOrders
+            await reloadList()
+        }
+        return result
     }
 
     func loadInitialData() async {
