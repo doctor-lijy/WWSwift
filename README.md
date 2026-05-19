@@ -26,21 +26,30 @@ WEEX iOS 合约与退出登录能力的 **独立 Swift 复刻工程**（UIKit，
 - weexios 仅用于对照 API、交互与目录结构
 - 实施阶段见设计文档 §8（P0–P5）
 
-## 目录结构（目标）
+## 目录结构
 
 ```
 WWSwift/
-├── WWSwift/                 # App 源码（P0 起逐步落地）
+├── WWSwift.xcodeproj
+├── WWSwift.xcworkspace      # CocoaPods（SnapKit、SDWebImage）
+├── WWSwift/                 # App 源码
+│   ├── App/
+│   ├── Core/
+│   │   ├── Network/
+│   │   ├── Session/
+│   │   └── Storage/
+│   └── Resources/
+├── WWSwiftTests/
 ├── docs/
-│   └── superpowers/specs/ # 设计文档
-├── .cursor/                 # Rules / Agents
-├── .codex/skills/           # 迁移技能
+│   └── superpowers/specs/
+├── .cursor/
+├── .codex/skills/
 ├── Podfile
 ├── AGENTS.md
 └── README.md
 ```
 
-> 当前仓库仍为早期脚手架（`SourceCode/` + `WWSwift.podspec`），P0 将替换为独立 Xcode App 工程。
+详见设计文档 [§5 工程结构](docs/superpowers/specs/2026-05-19-wwswift-standalone-design.md#5-工程结构方案-1)。
 
 ## License
 
