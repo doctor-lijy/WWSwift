@@ -8,6 +8,7 @@ import PHNet
 /// - `TYPE_SOCKET_DISCONNECT_CONTRACT_PUBLIC` (504)：断开
 /// - `TYPE_SOCKET_CONTRACT_MARKET` (301)：批量 24h 行情
 /// - `TYPE_SOCKET_CONTRACT_MARKET_SINGLE` (310)：单币种 24h 行情
+/// - `TYPE_SOCKET_CONTRACT_FUNDINGRATE` (302)：资金费率
 ///
 /// 设计：单例 + 主线程回调。回调通过 `onTickerUpdate(_:)` 注册闭包。
 /// 暂不做引用计数订阅；后续扩 OrderBook / LastTrade / Kline 时再细化。
@@ -23,7 +24,9 @@ final class ContractMarketSocketService {
     /// 回调（主线程）。多个监听者用同一回调时各自管理 weak self。
     var onTickerUpdate: (([ContractMarketTick]) -> Void)?
     var onConnectionStateChanged: ((Bool) -> Void)?
+    var onFundingRateUpdate: ((String, String) -> Void)?
 
+    private var subscribedFundingContractId: String?
     private var didRegister = false
 
     private init() {}
@@ -39,6 +42,7 @@ final class ContractMarketSocketService {
             NSNumber(value: TYPE_SOCKET_DISCONNECT_CONTRACT_PUBLIC),
             NSNumber(value: TYPE_SOCKET_CONTRACT_MARKET),
             NSNumber(value: TYPE_SOCKET_CONTRACT_MARKET_SINGLE),
+            NSNumber(value: TYPE_SOCKET_CONTRACT_FUNDINGRATE),
         ]
 
         SocketManager.getInstance().registReceiver(
@@ -66,6 +70,23 @@ final class ContractMarketSocketService {
         SocketManager.getInstance().subscribeMarketsOfContract()
     }
 
+    func subscribeFundingRate(contractId: String) {
+        guard !contractId.isEmpty else { return }
+        if subscribedFundingContractId == contractId { return }
+        if let previous = subscribedFundingContractId {
+            SocketManager.getInstance().unSubScribeFundingRate(ofContract: previous)
+        }
+        subscribedFundingContractId = contractId
+        SocketManager.getInstance().subScribeFundingRate(ofContract: contractId)
+    }
+
+    func unsubscribeFundingRate() {
+        if let id = subscribedFundingContractId {
+            SocketManager.getInstance().unSubScribeFundingRate(ofContract: id)
+        }
+        subscribedFundingContractId = nil
+    }
+
     // MARK: - Snapshot accessor
 
     func ticker(forContractId contractId: String) -> ContractMarketTick? {
@@ -91,13 +112,57 @@ final class ContractMarketSocketService {
         case TYPE_SOCKET_CONTRACT_MARKET, TYPE_SOCKET_CONTRACT_MARKET_SINGLE:
             parseTickers(rawJSON: data.data)
 
+        case TYPE_SOCKET_CONTRACT_FUNDINGRATE:
+            parseFundingRate(rawJSON: data.data)
+
         default:
             break
         }
     }
 
+    private func parseFundingRate(rawJSON: String?) {
+        let raw = rawJSON ?? ""
+        guard !raw.isEmpty,
+              let payload = raw.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: payload) as? [String: Any],
+              let channel = json["channel"] as? String
+        else { return }
+
+        let contractId = channel.split(separator: ".").last.map(String.init) ?? ""
+        guard let dataArray = json["data"] as? [[String: Any]], let first = dataArray.first else { return }
+
+        let rate = stringValue(first["forecastFundingRate"])
+            .isEmpty ? stringValue(first["predictedFundingRate"]) : stringValue(first["forecastFundingRate"])
+        let rateText = rate.isEmpty ? "—" : String(format: "%.4f%%", (Double(rate) ?? 0) * 100)
+
+        let fundingTimeMs = Double(stringValue(first["fundingTime"])) ?? 0
+        let countdown: String
+        if fundingTimeMs > 0 {
+            let remain = max(0, Int(fundingTimeMs / 1000) - Int(Date().timeIntervalSince1970))
+            let h = remain / 3600
+            let m = (remain % 3600) / 60
+            let s = remain % 60
+            countdown = String(format: "%02d:%02d:%02d", h, m, s)
+        } else {
+            countdown = "--:--:--"
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.onFundingRateUpdate?(rateText, countdown)
+        }
+    }
+
+    private func stringValue(_ value: Any?) -> String {
+        switch value {
+        case let s as String: return s
+        case let n as NSNumber: return n.stringValue
+        default: return ""
+        }
+    }
+
     private func parseTickers(rawJSON: String?) {
-        guard let raw = rawJSON, let payload = raw.data(using: .utf8) else { return }
+        let raw = rawJSON ?? ""
+        guard !raw.isEmpty, let payload = raw.data(using: .utf8) else { return }
         do {
             let envelope = try JSONDecoder().decode(ContractMarketEnvelope.self, from: payload)
             guard let ticks = envelope.data, !ticks.isEmpty else { return }

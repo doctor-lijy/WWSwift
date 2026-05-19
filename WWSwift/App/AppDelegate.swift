@@ -14,6 +14,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         PHNetBootstrap.configure(session: session, environment: environment)
 
         ContractMarketSocketService.shared.registerReceivers()
+        ContractOrderBookSocketService.shared.registerReceivers()
+        ContractPrivateTradeSocketService.shared.registerReceivers()
         SocketBootstrap.start()
 
         let window = UIWindow(frame: UIScreen.main.bounds)

@@ -41,7 +41,7 @@
 
 | weexios (Contract/Controller) | WWSwift | 状态 | 备注 |
 |-------------------------------|---------|------|------|
-| `WContractController` | `ContractViewController` + `ContractViewModel` | PARTIAL | M2：左下单+右盘口+底栏列表；无 K 线 |
+| `WContractController` | `ContractViewController` + `ContractViewModel` | PARTIAL | M2 布局 + M3 Socket/私有推送 |
 | `WContractBaseController` | — | PARTIAL | 逻辑合并进 `ContractViewController` |
 | `WContractPositionController` | `ContractViewModel`（持仓 segment） | PARTIAL | 持仓为 Mock 数据 |
 | `WContractEntrustCurrentController` | `ContractViewModel`（当前委托 segment） | PARTIAL | Mock/Test 拉 `getActiveOrderPage` |
@@ -62,7 +62,7 @@
 | `WContractPlaceOrderView` | `Views/PlaceOrder/PlaceOrderPanelView` | PARTIAL | M2 子 View 拆分；双按钮开多/开空 |
 | `WContractPlaceOrderTextFieldBoxView` | `PriceSizeInputView` 等 | PARTIAL | TP/SL 仅 UI 开关 |
 | `WContractPlaceOrderBtnBoxView` | `PlaceOrderButtonsView` | PARTIAL | 绿/红双按钮 |
-| `WContractOrderBookView` | `ContractOrderBookView` | PARTIAL | M2 Mock 5+5；M3 Socket |
+| `WContractOrderBookView` | `ContractOrderBookView` | PARTIAL | M3 `ContractOrderBookSocketService` |
 | `WPlaceOrderConfirmView` / `PlaceOrderConfirmView` | `OrderConfirmAlertController` | PARTIAL | `UIAlertController` 确认 |
 | `WContractPlaceOrderTpSlBoxView` | — | PLACEHOLDER | 开仓 TP/SL 未实现 |
 | `WContractPlaceOrderPlanGuaranteedSlPriceBoxView` | — | OUT_OF_SCOPE | 计划委托保价 |
@@ -149,8 +149,8 @@
 |---|------|----------|------------|
 | G1 | 网络 | ~~`RequestSigning`~~ 已改 PHNet 签名（M1） | — |
 | G2 | 网络 | 环境域名未接 `pullNetConfigFile` 动态配置 | 中 |
-| G3 | 行情 | 24h 行情 Socket 已有；盘口/资金费率待 M3 | 中 |
-| G4 | 持仓 | 持仓列表为 Mock，未接真实仓位 API | 高 |
+| G3 | 行情 | 行情/盘口/资金费率 Socket 已接（M3） | 低 |
+| G4 | 持仓 | 私有 Socket 306 推送；非 REST | 中 |
 | G5 | 下单 | 无计划委托、追踪止损、BBO、GTD 保价 | 低 |
 | G6 | 下单 | 杠杆/保证金模式 UI 简化，未接 `updateLeverageSetting` | 中 |
 | G7 | TP/SL | 仓位维度 TP/SL 仅 Toast 占位 | 中 |

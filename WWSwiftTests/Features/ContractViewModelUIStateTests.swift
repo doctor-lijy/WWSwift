@@ -12,7 +12,8 @@ final class ContractViewModelUIStateTests: XCTestCase {
     func testUpdateSizePercent_updatesSizeInput() {
         let vm = makeViewModel()
         vm.updateSizePercent(50)
-        XCTAssertEqual(vm.sizeInputText, "0.5000")
+        // 默认可用 1234.56 USDT、20x、Mock 盘口价 97234.5 → 50% 仓位约 0.1270
+        XCTAssertEqual(vm.sizeInputText, "0.1270")
     }
 
     private func makeViewModel() -> ContractViewModel {

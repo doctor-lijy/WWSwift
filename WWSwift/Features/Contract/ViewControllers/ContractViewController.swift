@@ -173,9 +173,6 @@ final class ContractViewController: UIViewController {
             priceChangePercent: viewModel.currentTick?.priceChangePercent
         )
         headerView.updateSocketStatus(viewModel.socketConnected)
-        if let price = viewModel.currentTick?.lastPrice {
-            orderBookView.update(snapshot: .mock(lastPrice: price))
-        }
     }
 
     private func updateEmptyState() {

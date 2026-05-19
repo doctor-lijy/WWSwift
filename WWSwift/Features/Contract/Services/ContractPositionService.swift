@@ -12,9 +12,22 @@ final class ContractPositionService {
     static let closeAllPositionPath = "api/v1/private/order/closeAllPosition"
 
     private let apiClient: APIClient
+    private let privateTradeSocket: ContractPrivateTradeSocketService
 
-    init(apiClient: APIClient) {
+    init(
+        apiClient: APIClient,
+        privateTradeSocket: ContractPrivateTradeSocketService = .shared
+    ) {
         self.apiClient = apiClient
+        self.privateTradeSocket = privateTradeSocket
+    }
+
+    /// 非 Mock 环境：读取私有 Socket 持仓快照；Mock 由 ViewModel 注入演示数据。
+    func positionsFromSocket(contractId: String, onlyCurrentSymbol: Bool) -> [ContractPosition] {
+        privateTradeSocket.positions(
+            contractId: onlyCurrentSymbol ? contractId : nil,
+            onlyCurrent: onlyCurrentSymbol
+        )
     }
 
     func cancelOrder(orderId: String) async -> Result<Void, APIError> {

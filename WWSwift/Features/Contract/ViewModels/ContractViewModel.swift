@@ -43,6 +43,9 @@ final class ContractViewModel {
     private let positionService: ContractPositionService
     private let environmentManager: EnvironmentManager
     private let marketSocket: ContractMarketSocketService
+    private let orderBookSocket: ContractOrderBookSocketService
+    private let privateTradeSocket: ContractPrivateTradeSocketService
+    private let accountService: ContractAccountService
 
     init(
         configService: ContractConfigService,
@@ -50,7 +53,10 @@ final class ContractViewModel {
         orderService: ContractOrderService,
         positionService: ContractPositionService,
         environmentManager: EnvironmentManager,
-        marketSocket: ContractMarketSocketService = .shared
+        marketSocket: ContractMarketSocketService = .shared,
+        orderBookSocket: ContractOrderBookSocketService = .shared,
+        privateTradeSocket: ContractPrivateTradeSocketService = .shared,
+        accountService: ContractAccountService = ContractAccountService()
     ) {
         self.configService = configService
         self.tradingService = tradingService
@@ -58,6 +64,9 @@ final class ContractViewModel {
         self.positionService = positionService
         self.environmentManager = environmentManager
         self.marketSocket = marketSocket
+        self.orderBookSocket = orderBookSocket
+        self.privateTradeSocket = privateTradeSocket
+        self.accountService = accountService
 
         bindSocket()
         bindEnvironmentChange()
@@ -89,9 +98,58 @@ final class ContractViewModel {
             guard let self = self, let symbol = self.selectedSymbol else { return }
             if let tick = self.marketSocket.ticker(forContractId: symbol.contractId) {
                 self.currentTick = tick
+                self.recalculatePreview()
                 self.onTickUpdate?()
             }
         }
+        marketSocket.onFundingRateUpdate = { [weak self] rate, countdown in
+            self?.fundingRateText = rate
+            self?.fundingCountdownText = countdown
+            self?.onUpdate?()
+        }
+        orderBookSocket.onSnapshotUpdate = { [weak self] book in
+            self?.orderBook = book
+            self?.recalculatePreview()
+            self?.onUpdate?()
+        }
+        privateTradeSocket.onPositionsUpdate = { [weak self] in
+            Task { @MainActor [weak self] in
+                await self?.reloadList()
+            }
+        }
+        privateTradeSocket.onAccountUpdate = { [weak self] in
+            self?.refreshAccountDisplay()
+            self?.recalculatePreview()
+            self?.onUpdate?()
+        }
+    }
+
+    private func subscribeRealtime(for symbol: ContractSymbol) {
+        guard environmentManager.current != .mock else { return }
+        marketSocket.subscribeMarkets([symbol.contractId])
+        marketSocket.subscribeFundingRate(contractId: symbol.contractId)
+        orderBookSocket.subscribe(contractId: symbol.contractId)
+    }
+
+    private func refreshAccountDisplay() {
+        if let balance = accountService.availableBalanceDisplay() {
+            availableBalanceText = balance
+        }
+    }
+
+    func recalculatePreview() {
+        let price = Double(currentTick?.lastPrice ?? orderBook.lastPrice) ?? 0
+        let balance = ContractPreviewCalculator.parseBalanceNumber(from: availableBalanceText) ?? 0
+        let size = Double(sizeInputText) ?? 0
+        let result = ContractPreviewCalculator.preview(
+            availableBalanceUSDT: balance,
+            leverage: tradeSettings.leverage,
+            price: price,
+            size: size
+        )
+        maxOpenLongText = result.maxOpen
+        maxOpenShortText = result.maxOpen
+        costPreviewText = result.cost
     }
 
     func submitOrder(_ request: PlaceOrderRequest) async -> Result<String, APIError> {
@@ -109,8 +167,18 @@ final class ContractViewModel {
         switch result {
         case .success(let list):
             symbols = list
-            selectedSymbol = list.first
+            if let first = list.first {
+                selectedSymbol = first
+                if environmentManager.current == .mock {
+                    orderBook = .mock(lastPrice: "97234.5")
+                } else {
+                    subscribeRealtime(for: first)
+                    orderBook = orderBookSocket.currentSnapshot()
+                }
+            }
             refreshCurrentTickFromCache()
+            refreshAccountDisplay()
+            recalculatePreview()
             await reloadList()
         case .failure(let error):
             errorMessage = error.message
@@ -121,8 +189,15 @@ final class ContractViewModel {
 
     func selectSymbol(_ symbol: ContractSymbol) async {
         selectedSymbol = symbol
-        orderBook = .mock(lastPrice: currentTick?.lastPrice ?? "97234.5")
+        if environmentManager.current == .mock {
+            orderBook = .mock(lastPrice: currentTick?.lastPrice ?? "97234.5")
+        } else {
+            subscribeRealtime(for: symbol)
+            orderBook = orderBookSocket.currentSnapshot()
+        }
         refreshCurrentTickFromCache()
+        refreshAccountDisplay()
+        recalculatePreview()
         await reloadList()
     }
 
@@ -133,23 +208,29 @@ final class ContractViewModel {
 
     func setLeverage(_ value: Int) {
         tradeSettings.leverage = min(125, max(1, value))
+        recalculatePreview()
         notify()
     }
 
     func setMarginMode(_ mode: ContractMarginMode) {
         tradeSettings.marginMode = mode
+        recalculatePreview()
         notify()
     }
 
     func setSizeInput(_ text: String) {
         sizeInputText = text
+        recalculatePreview()
         notify()
     }
 
     func updateSizePercent(_ percent: Float) {
         let clamped = min(100, max(0, percent))
-        let base = 1.0
-        sizeInputText = String(format: "%.4f", base * Double(clamped) / 100.0)
+        let balance = ContractPreviewCalculator.parseBalanceNumber(from: availableBalanceText) ?? 1
+        let price = Double(currentTick?.lastPrice ?? orderBook.lastPrice) ?? 1
+        let maxQty = balance * Double(tradeSettings.leverage) / price
+        sizeInputText = String(format: "%.4f", maxQty * Double(clamped) / 100.0)
+        recalculatePreview()
         notify()
     }
 
@@ -241,7 +322,14 @@ final class ContractViewModel {
 
         switch segment {
         case .positions:
-            positions = mockPositions(for: symbol)
+            if environmentManager.current == .mock {
+                positions = mockPositions(for: symbol)
+            } else {
+                positions = positionService.positionsFromSocket(
+                    contractId: symbol.contractId,
+                    onlyCurrentSymbol: onlyCurrentSymbol
+                )
+            }
             tableRows = positions.map(\.displayTitle)
             notify()
         case .activeOrders:

@@ -28,6 +28,19 @@ Base URL 由 `EnvironmentManager.contractAPIBaseURL` 提供，完整 URL = base 
 | cancelOrderById | `api/v1/private/order/cancelOrderById` | 按 ID 撤单 | P4 |
 | closeAllPosition | `api/v1/private/order/closeAllPosition` | 一键平仓 / 全平 | P4 |
 
+## Socket 订阅（PHNet，M3）
+
+| 类型码 | 常量 | 用途 | WWSwift Service |
+|--------|------|------|-----------------|
+| 301/310 | `TYPE_SOCKET_CONTRACT_MARKET` | 24h 行情 | `ContractMarketSocketService` |
+| 302 | `TYPE_SOCKET_CONTRACT_FUNDINGRATE` | 资金费率 | `ContractMarketSocketService` |
+| 305 | `TYPE_SOCKET_CONTRACT_ORDERBOOK` | 盘口 | `ContractOrderBookSocketService` |
+| 306 | `TYPE_SOCKET_CONTRACT_TRADEDATA` | 持仓/抵押品/委托推送 | `ContractPrivateTradeSocketService` |
+| 502/504 | 公有通道连接 | 行情通道 | `ContractMarketSocketService` |
+| 503/505 | 私有通道连接 | 交易推送 | `ContractPrivateTradeSocketService` |
+
+持仓与可用余额 **无单独 REST**（weexios 走私有 Socket `Snapshot` / 增量事件）；可用余额由抵押品字段推导，可开/成本为 Swift 简化公式。
+
 ### weexios `ApiConst.h` 对照（节选）
 
 | Key | 典型宏/常量名 | 备注 |
