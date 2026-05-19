@@ -1,6 +1,6 @@
 # WWSwift
 
-WEEX iOS 项目的 Swift 组件库，以 CocoaPods 形式提供。
+WWSwift iOS 项目的 Swift 组件库，以 CocoaPods 形式提供。
 
 ## 要求
 
