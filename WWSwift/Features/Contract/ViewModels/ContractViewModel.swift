@@ -50,6 +50,23 @@ final class ContractViewModel {
         self.marketSocket = marketSocket
 
         bindSocket()
+        bindEnvironmentChange()
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    private func bindEnvironmentChange() {
+        NotificationCenter.default.addObserver(
+            forName: EnvironmentManager.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                await self?.loadInitialData()
+            }
+        }
     }
 
     private func bindSocket() {

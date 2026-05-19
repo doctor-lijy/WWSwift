@@ -27,12 +27,20 @@ final class EnvironmentManager {
 
     /// 切换环境。`syncToPHNet=true` 时同步调用 `DomainManager.switch(_:)`，
     /// 单元测试默认走 false 以避免触碰 PHNet（PHNet 未初始化时调用 switch 会崩）。
+    /// 切换后会 post `EnvironmentManager.didChangeNotification`，业务层可监听并刷新数据。
     func setCurrent(_ env: AppEnvironment, syncToPHNet: Bool = true) {
+        let previous = current
         storage.set(env.rawValue, forKey: Self.currentEnvKey)
-        guard syncToPHNet, env != .mock else { return }
-        let envType = AppENV(rawValue: UInt(env.phnetEnvRawValue))
-        DomainManager.getInstance().`switch`(envType)
+        if syncToPHNet, env != .mock {
+            let envType = AppENV(rawValue: UInt(env.phnetEnvRawValue))
+            DomainManager.getInstance().`switch`(envType)
+        }
+        guard previous != env else { return }
+        NotificationCenter.default.post(name: Self.didChangeNotification, object: self)
     }
+
+    /// 切换 env 后广播。监听者一般是合约页 ViewModel：收到通知后调用 `loadInitialData()` 重拉。
+    static let didChangeNotification = Notification.Name("WWSwiftEnvironmentDidChange")
 
     /// 根据 path 构造完整 URL：
     /// - mock：返回 `https://mock.wwswift.local/<path>`（仅占位）

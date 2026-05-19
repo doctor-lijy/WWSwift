@@ -13,6 +13,8 @@ final class EnvironmentDebugViewController: UIViewController {
     private let envLabel = UILabel()
     private let urlLabel = UILabel()
     private let tokenField = UITextField()
+    private let userTokenField = UITextField()
+    private let rTokenField = UITextField()
     private let userIdField = UITextField()
 
     init() {
@@ -33,8 +35,12 @@ final class EnvironmentDebugViewController: UIViewController {
         envLabel.numberOfLines = 0
         urlLabel.numberOfLines = 0
         urlLabel.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
-        tokenField.placeholder = "Access Token"
+        tokenField.placeholder = "Access Token (u-token)"
         tokenField.borderStyle = .roundedRect
+        userTokenField.placeholder = "User Token (HTTP header `token`)"
+        userTokenField.borderStyle = .roundedRect
+        rTokenField.placeholder = "R Token (Socket X-TOKEN)"
+        rTokenField.borderStyle = .roundedRect
         userIdField.placeholder = "User ID"
         userIdField.borderStyle = .roundedRect
 
@@ -55,6 +61,8 @@ final class EnvironmentDebugViewController: UIViewController {
         saveToken.setTitle("保存 Token / UserId", for: .normal)
         saveToken.addAction(UIAction { [weak self] _ in
             self?.sessionStore.accessToken = self?.tokenField.text
+            self?.sessionStore.userToken = self?.userTokenField.text
+            self?.sessionStore.rToken = self?.rTokenField.text
             self?.sessionStore.userId = self?.userIdField.text
             self?.refreshLabels()
         }, for: .touchUpInside)
@@ -66,7 +74,9 @@ final class EnvironmentDebugViewController: UIViewController {
         }, for: .touchUpInside)
 
         let stack = UIStackView(arrangedSubviews: [
-            envLabel, urlLabel, tokenField, userIdField, saveToken, envStack, logout
+            envLabel, urlLabel,
+            tokenField, userTokenField, rTokenField, userIdField,
+            saveToken, envStack, logout
         ])
         stack.axis = .vertical
         stack.spacing = 12
@@ -79,9 +89,11 @@ final class EnvironmentDebugViewController: UIViewController {
 
     private func refreshLabels() {
         let sampleURL = environmentManager.url(for: "api/v1/public/meta/getMetaDataNew")
-        envLabel.text = "当前环境: \(environmentManager.current.displayName)"
+        envLabel.text = "当前环境: \(environmentManager.current.displayName) · isLogin=\(sessionStore.isLoggedIn)"
         urlLabel.text = "合约 API: \(sampleURL.absoluteString)"
         tokenField.text = sessionStore.accessToken
+        userTokenField.text = sessionStore.userToken
+        rTokenField.text = sessionStore.rToken
         userIdField.text = sessionStore.userId
     }
 
