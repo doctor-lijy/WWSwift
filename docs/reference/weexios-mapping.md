@@ -23,9 +23,9 @@
 
 | weexios | WWSwift | 状态 | 备注 |
 |---------|---------|------|------|
-| `DomainManager` / `PHNet` | `EnvironmentManager` + `APIClient` | PARTIAL | 域名写死常量；未实现 `pullNetConfigFile`、线路切换 |
-| `RequestMap` 签名 | `RequestSigning` | PARTIAL | P0 占位 `TODO_P1_FULL_SIGN`，未对齐 HMAC |
-| `WeexHttpClient` | `APIClient` + `URLSession` | PARTIAL | Mock 走 `MockProvider` |
+| `DomainManager` / `PHNet` | `EnvironmentManager` + `PHNetBootstrap` | DONE | 环境切换 + 默认域名；未实现 `pullNetConfigFile` |
+| `RequestMap` 签名 | `PHNetBootstrap` + `SecurityManager` | DONE | 签名由 PHNet 承担，见 `docs/api/signing.md` |
+| `WeexHttpClient` | `APIClient` → `WeexHttpClient` | DONE | Mock 走 `MockProvider` |
 | `WCacheUtil` (`currentEnv`) | `UserDefaultsStorage` + `currentEnv` 键 | DONE | |
 | `UserManger` / `SP_KEY_TOKEN` | `SessionStore` | DONE | |
 | `LoginHandler.logout` | `LogoutService` | DONE | path: `v1/user/login/logout` |
@@ -146,9 +146,9 @@
 
 | # | 类别 | 差异描述 | 建议优先级 |
 |---|------|----------|------------|
-| G1 | 网络 | `RequestSigning` 未对齐 weexios HMAC/公共参数 | P1 联调前 |
+| G1 | 网络 | ~~`RequestSigning`~~ 已改 PHNet 签名（M1） | — |
 | G2 | 网络 | 环境域名未接 `pullNetConfigFile` 动态配置 | 中 |
-| G3 | 行情 | 无 WebSocket 订阅、无 K 线/盘口 | 中 |
+| G3 | 行情 | 24h 行情 Socket 已有；盘口/资金费率待 M3 | 中 |
 | G4 | 持仓 | 持仓列表为 Mock，未接真实仓位 API | 高 |
 | G5 | 下单 | 无计划委托、追踪止损、BBO、GTD 保价 | 低 |
 | G6 | 下单 | 杠杆/保证金模式 UI 简化，未接 `updateLeverageSetting` | 中 |
