@@ -2,12 +2,17 @@ import Foundation
 
 struct MockProvider {
     private let bundle: Bundle
+    private let overrides: [String: Data]
 
-    init(bundle: Bundle = .main) {
+    init(bundle: Bundle = .main, overrides: [String: Data] = [:]) {
         self.bundle = bundle
+        self.overrides = overrides
     }
 
     func data(forPath path: String) throws -> Data {
+        if let data = overrides[path] {
+            return data
+        }
         let fileName = path
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: ":", with: "_")

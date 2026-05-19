@@ -4,7 +4,11 @@ import SnapKit
 final class EnvironmentDebugViewController: UIViewController {
     private let environmentManager = EnvironmentManager()
     private let sessionStore = SessionStore()
-    private let apiClient: APIClient
+    private lazy var apiClient = APIClient(environment: environmentManager, session: sessionStore)
+    private lazy var logoutCoordinator = LogoutCoordinator(
+        presentingViewController: self,
+        logoutService: LogoutService(apiClient: apiClient, session: sessionStore)
+    )
 
     private let envLabel = UILabel()
     private let urlLabel = UILabel()
@@ -12,7 +16,6 @@ final class EnvironmentDebugViewController: UIViewController {
     private let userIdField = UITextField()
 
     init() {
-        self.apiClient = APIClient(environment: environmentManager, session: sessionStore)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -82,17 +85,7 @@ final class EnvironmentDebugViewController: UIViewController {
     }
 
     private func triggerLogout() async {
-        do {
-            let _: LogoutResponseDTO = try await apiClient.post(path: "v1/user/login/logout", body: [:])
-            sessionStore.clear()
-            refreshLabels()
-            let alert = UIAlertController(title: "退出", message: "成功", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-        } catch {
-            let alert = UIAlertController(title: "退出失败", message: error.localizedDescription, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-        }
+        await logoutCoordinator.performLogout()
+        refreshLabels()
     }
 }
