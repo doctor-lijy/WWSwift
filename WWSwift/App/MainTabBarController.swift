@@ -7,7 +7,7 @@ final class MainTabBarController: UITabBarController {
         contract.tabBarItem = UITabBarItem(title: "合约", image: nil, tag: 0)
 
         #if DEBUG
-        let debug = UINavigationController(rootViewController: DebugPlaceholderViewController())
+        let debug = UINavigationController(rootViewController: EnvironmentDebugViewController())
         debug.tabBarItem = UITabBarItem(title: "Debug", image: nil, tag: 1)
         viewControllers = [contract, debug]
         #else
@@ -33,22 +33,3 @@ final class ContractPlaceholderViewController: UIViewController {
         ])
     }
 }
-
-#if DEBUG
-final class DebugPlaceholderViewController: UIViewController {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        title = "Debug"
-        let label = UILabel()
-        label.text = "Debug — Task 5"
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
-    }
-}
-#endif
