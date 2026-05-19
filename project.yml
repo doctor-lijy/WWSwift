@@ -1,0 +1,34 @@
+name: WWSwift
+options:
+  bundleIdPrefix: com.weex.wwswift
+  deploymentTarget:
+    iOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "14.0"
+targets:
+  WWSwift:
+    type: application
+    platform: iOS
+    sources:
+      - path: WWSwift
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.weex.wwswift.app
+      INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
+      GENERATE_INFOPLIST_FILE: YES
+      INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+      INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+    scheme:
+      testTargets:
+        - WWSwiftTests
+  WWSwiftTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: WWSwiftTests
+    dependencies:
+      - target: WWSwift
+    settings:
+      GENERATE_INFOPLIST_FILE: YES

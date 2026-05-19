@@ -16,3 +16,10 @@ Pods/
 # Swift Package Manager
 .build/
 .swiftpm/
+
+# XcodeGen
+*.xcodeproj
+!project.yml
+
+# Keep workspace from CocoaPods
+!WWSwift.xcworkspace
